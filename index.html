@@ -1,0 +1,14 @@
+<input id="username" placeholder="LeetCode username" />
+<button onclick="load()">Load Stats</button>
+<div id="result"></div>
+
+<script>
+async function load() {
+  const u = document.getElementById("username").value;
+  const data = await fetch(`http://localhost:8000/stats/${u}`).then(r => r.json());
+  document.getElementById("result").innerHTML = `
+    Solved: ${data.All} total
+    (Easy: ${data.Easy}, Medium: ${data.Medium}, Hard: ${data.Hard})
+  `;
+}
+</script>
