@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fetchers import leetcode, codeforces, hackerrank
-
+from fetchers import leetcode, codeforces, hackerrank, geeksforgeeks
 app = FastAPI()
 
 app.add_middleware(
@@ -22,6 +21,10 @@ def codeforces_stats(username: str):
 @app.get("/stats/hackerrank/{username}")
 def hackerrank_stats(username: str):
     return hackerrank.get_stats(username)
+
+@app.get("/stats/geeksforgeeks/{username}")
+def gfg_stats(username: str):
+    return geeksforgeeks.get_stats(username)
 
 @app.get("/stats/all")
 def all_stats(lc: str = None, cf: str = None, hr: str = None):

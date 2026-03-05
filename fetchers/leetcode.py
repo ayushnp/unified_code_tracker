@@ -7,6 +7,11 @@ def get_stats(username: str):
         submitStatsGlobal {
           acSubmissionNum { difficulty count }
         }
+        userCalendar {
+          streak
+          totalActiveDays
+          submissionCalendar
+        }
       }
     }
     """
@@ -19,8 +24,13 @@ def get_stats(username: str):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
     )
-    items = response.json()["data"]["matchedUser"]["submitStatsGlobal"]["acSubmissionNum"]
+
+    user = response.json()["data"]["matchedUser"]
+    items = user["submitStatsGlobal"]["acSubmissionNum"]
     counts = {item["difficulty"]: item["count"] for item in items}
+    calendar = user["userCalendar"]
+
+    import json
     return {
         "platform": "leetcode",
         "username": username,
@@ -28,4 +38,8 @@ def get_stats(username: str):
         "easy": counts.get("Easy", 0),
         "medium": counts.get("Medium", 0),
         "hard": counts.get("Hard", 0),
+        "streak": calendar["streak"],
+        "total_active_days": calendar["totalActiveDays"],
+        # This is a JSON string of {timestamp: count} — we parse it
+        "daily_submissions": json.loads(calendar["submissionCalendar"]),
     }

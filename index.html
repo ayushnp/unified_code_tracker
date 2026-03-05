@@ -1,14 +1,782 @@
-<input id="username" placeholder="LeetCode username" />
-<button onclick="load()">Load Stats</button>
-<div id="result"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CodeTracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --bg2:      #161b22;
+      --bg3:      #1c2128;
+      --border:   #30363d;
+      --border2:  #21262d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --green:    #22c55e;
+      --yellow:   #f59e0b;
+      --red:      #ef4444;
+      --blue:     #58a6ff;
+      --orange:   #f97316;
+      --lc:       #f59e0b;
+      --cf:       #3b82f6;
+      --hr:       #22c55e;
+      --gfg:      #2f8d46;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg2);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+    .logo-sub  { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── MAIN ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+    /* ── INPUT SECTION ── */
+    .input-section {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 36px;
+    }
+    .input-section h2 {
+      font-size: 16px; font-weight: 700;
+      color: var(--muted); letter-spacing: 0.08em;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    .input-grid {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+    }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label {
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .input-group input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      width: 210px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .input-group input:focus { border-color: var(--blue); }
+    .input-group input::placeholder { color: var(--muted); }
+
+    .lc-label  { color: var(--lc); }
+    .cf-label  { color: var(--cf); }
+    .hr-label  { color: var(--hr); }
+    .gfg-label { color: var(--gfg); }
+
+    .btn-load {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 11px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.02em;
+      align-self: flex-end;
+    }
+    .btn-load:hover  { background: #2ea043; }
+    .btn-load:active { transform: scale(0.97); }
+
+    /* ── PLATFORM CARDS ── */
+    .platform-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+    .platform-header {
+      display: flex; align-items: center;
+      gap: 12px; margin-bottom: 22px;
+    }
+    .platform-dot {
+      width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+    }
+    .platform-name {
+      font-size: 20px; font-weight: 800; letter-spacing: -0.02em;
+    }
+    .platform-user {
+      font-size: 13px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace; font-weight: 400;
+    }
+    .platform-badge {
+      margin-left: auto;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* ── STAT BOXES ── */
+    .stats-row {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+    }
+    .stat-box {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px 20px;
+      min-width: 110px;
+      transition: border-color 0.2s;
+    }
+    .stat-box:hover { border-color: var(--border); }
+    .stat-label {
+      font-size: 11px; color: var(--muted);
+      font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 26px; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.03em;
+    }
+    .stat-sub {
+      font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+    .c-total  { color: var(--blue); }
+    .c-easy   { color: var(--green); }
+    .c-medium { color: var(--yellow); }
+    .c-hard   { color: var(--red); }
+    .c-streak { color: var(--orange); }
+    .c-rating { color: #a78bfa; }
+    .c-white  { color: var(--text); }
+    .c-gfg    { color: var(--gfg); }
+
+    /* ── HEATMAP (LeetCode / Codeforces) ── */
+    .heatmap-section { margin-top: 8px; }
+    .heatmap-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .heatmap-title-text { font-size: 13px; color: var(--muted); }
+    .heatmap-title-text strong { color: var(--text); }
+
+    .heatmap-wrapper { overflow-x: auto; padding-bottom: 6px; }
+    .heatmap-graph { display: inline-flex; flex-direction: column; min-width: max-content; }
+
+    .month-row {
+      position: relative; height: 18px;
+      margin-left: 28px; margin-bottom: 4px;
+    }
+    .month-lbl {
+      position: absolute; font-size: 11px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .heatmap-body { display: flex; gap: 0; }
+    .day-labels {
+      display: flex; flex-direction: column;
+      gap: 3px; margin-right: 5px;
+    }
+    .day-lbl {
+      font-size: 10px; color: var(--muted);
+      height: 13px; line-height: 13px;
+      width: 22px; text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .weeks-grid { display: flex; gap: 3px; }
+    .week-col   { display: flex; flex-direction: column; gap: 3px; }
+    .day-cell {
+      width: 13px; height: 13px; border-radius: 2px;
+      background: var(--border2); cursor: pointer;
+      position: relative; flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    .day-cell:hover { opacity: 0.85; }
+    .day-cell .tip {
+      display: none; position: absolute;
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--bg3); color: var(--text);
+      border: 1px solid var(--border); padding: 5px 9px;
+      border-radius: 6px; font-size: 11px; white-space: nowrap;
+      z-index: 100; pointer-events: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .day-cell:hover .tip { display: block; }
+    .heatmap-footer {
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 8px; margin-left: 28px;
+      font-size: 11px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .legend-cell {
+      width: 13px; height: 13px;
+      border-radius: 2px; display: inline-block; flex-shrink: 0;
+    }
+
+    /* ── GFG MONTHLY CHART ── */
+    .monthly-chart-wrap {
+      margin-top: 20px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .monthly-chart-title {
+      font-size: 13px; color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .monthly-chart-title strong { color: var(--text); }
+    .monthly-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 120px;
+    }
+    .month-bar-col {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+      flex: 1;
+    }
+    .month-bar-count {
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text); min-height: 14px; line-height: 14px;
+    }
+    .month-bar {
+      width: 100%; border-radius: 3px 3px 0 0;
+      transition: opacity 0.2s;
+      cursor: default;
+      min-height: 3px;
+    }
+    .month-bar:hover { opacity: 0.75; }
+    .month-bar-label {
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      color: var(--muted); margin-top: 6px;
+    }
+    .month-bar-label.current { color: var(--gfg); font-weight: 700; }
+
+    /* ── HR TRACKS ── */
+    .tracks-grid {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
+    }
+    .track-pill {
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 8px 14px; font-size: 13px;
+    }
+    .track-pill .tname  { color: var(--muted); font-size: 11px; margin-bottom: 2px; }
+    .track-pill .tscore { color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── GFG NOTE ── */
+    .gfg-note {
+      font-size: 12px; color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 12px; padding: 10px 14px;
+      background: var(--bg3); border-radius: 8px;
+      border-left: 3px solid var(--gfg);
+    }
+
+    /* ── STATES ── */
+    .loading-text {
+      color: var(--muted); font-style: italic; font-size: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-text { color: var(--red); font-size: 14px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state .big { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡</div>
+  <div>
+    <div class="logo-text">CodeTracker</div>
+    <div class="logo-sub">unified progress dashboard</div>
+  </div>
+</header>
+
+<main>
+  <div class="input-section">
+    <h2>Connect Your Accounts</h2>
+    <div class="input-grid">
+      <div class="input-group">
+        <label class="lc-label">🟡 LeetCode</label>
+        <input id="lc" placeholder="username" />
+      </div>
+      <div class="input-group">
+        <label class="cf-label">🔵 Codeforces</label>
+        <input id="cf" placeholder="handle" />
+      </div>
+      <div class="input-group">
+        <label class="hr-label">🟢 HackerRank</label>
+        <input id="hr" placeholder="username" />
+      </div>
+      <div class="input-group">
+        <label class="gfg-label">🟩 GeeksForGeeks</label>
+        <input id="gfg" placeholder="username" />
+      </div>
+      <button class="btn-load" onclick="loadAll()">Load Stats →</button>
+    </div>
+  </div>
+
+  <div id="platforms">
+    <div class="empty-state">
+      <div class="big">📊</div>
+      <p>Enter your usernames above and click <strong>Load Stats</strong></p>
+    </div>
+  </div>
+</main>
 
 <script>
-async function load() {
-  const u = document.getElementById("username").value;
-  const data = await fetch(`http://localhost:8000/stats/${u}`).then(r => r.json());
-  document.getElementById("result").innerHTML = `
-    Solved: ${data.All} total
-    (Easy: ${data.Easy}, Medium: ${data.Medium}, Hard: ${data.Hard})
-  `;
+const API = "http://localhost:8000";
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// ── PLATFORM CONFIG ───────────────────────────────────
+const PLATFORM = {
+  leetcode:      { color: "#f59e0b", icon: "🟡", label: "LeetCode"      },
+  codeforces:    { color: "#3b82f6", icon: "🔵", label: "Codeforces"    },
+  hackerrank:    { color: "#22c55e", icon: "🟢", label: "HackerRank"    },
+  geeksforgeeks: { color: "#2f8d46", icon: "🟩", label: "GeeksForGeeks" },
+};
+
+// ── HEAT COLORS ───────────────────────────────────────
+function heatColor(count) {
+  if (count === 0) return "#21262d";
+  if (count <= 2)  return "#0e4429";
+  if (count <= 5)  return "#006d32";
+  if (count <= 9)  return "#26a641";
+  return "#39d353";
 }
+
+// ── NORMALIZE daily data ──────────────────────────────
+function normalize(raw, isTimestamp) {
+  const out = {};
+  if (isTimestamp) {
+    for (const [ts, count] of Object.entries(raw)) {
+      const d = new Date(parseInt(ts) * 1000).toISOString().split("T")[0];
+      out[d] = (out[d] || 0) + count;
+    }
+  } else {
+    Object.assign(out, raw);
+  }
+  return out;
+}
+
+// ── BUILD DAILY HEATMAP (LeetCode / Codeforces) ───────
+function buildHeatmap(rawData, isTimestamp, totalSubs, activeDays, streakVal) {
+  const data = normalize(rawData, isTimestamp);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const end = new Date(today);
+  end.setDate(today.getDate() + (6 - today.getDay()));
+  const start = new Date(end);
+  start.setDate(end.getDate() - 52 * 7);
+  start.setDate(start.getDate() - start.getDay());
+
+  const weeks = [];
+  const cur = new Date(start);
+  while (cur <= end) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const ds = cur.toISOString().split("T")[0];
+      week.push({ ds, count: data[ds] || 0, future: cur > today });
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+
+  // Month label positions
+  const monthPos = [];
+  let lastM = -1;
+  weeks.forEach((w, wi) => {
+    const first = w.find(d => !d.future);
+    if (!first) return;
+    const m = new Date(first.ds).getMonth();
+    if (m !== lastM && wi > 0) { monthPos.push({ label: MONTHS_SHORT[m], wi }); lastM = m; }
+    else if (lastM === -1) lastM = m;
+  });
+
+  const total  = totalSubs  || Object.values(data).reduce((a,b) => a+b, 0);
+  const active = activeDays || Object.values(data).filter(v => v > 0).length;
+
+  const wrap = document.createElement("div");
+  wrap.className = "heatmap-section";
+
+  // Header
+  const hdr = document.createElement("div");
+  hdr.className = "heatmap-header";
+  hdr.innerHTML = `
+    <div class="heatmap-title-text">
+      <strong>${total.toLocaleString()}</strong> submissions in the past one year &nbsp;·&nbsp;
+      Total active days: <strong>${active}</strong>
+      ${streakVal ? `&nbsp;·&nbsp; Max streak: <strong>${streakVal}</strong>` : ""}
+    </div>`;
+  wrap.appendChild(hdr);
+
+  const wrapInner = document.createElement("div");
+  wrapInner.className = "heatmap-wrapper";
+  const graph = document.createElement("div");
+  graph.className = "heatmap-graph";
+
+  // Month row
+  const mrow = document.createElement("div");
+  mrow.className = "month-row";
+  monthPos.forEach(({ label, wi }) => {
+    const s = document.createElement("span");
+    s.className = "month-lbl";
+    s.textContent = label;
+    s.style.left = (wi * 16) + "px";
+    mrow.appendChild(s);
+  });
+  graph.appendChild(mrow);
+
+  // Body
+  const body = document.createElement("div");
+  body.className = "heatmap-body";
+
+  const dlabels = document.createElement("div");
+  dlabels.className = "day-labels";
+  ["", "Mon", "", "Wed", "", "Fri", ""].forEach(t => {
+    const d = document.createElement("div");
+    d.className = "day-lbl"; d.textContent = t;
+    dlabels.appendChild(d);
+  });
+  body.appendChild(dlabels);
+
+  const grid = document.createElement("div");
+  grid.className = "weeks-grid";
+  weeks.forEach(week => {
+    const col = document.createElement("div");
+    col.className = "week-col";
+    week.forEach(({ ds, count, future }) => {
+      const cell = document.createElement("div");
+      cell.className = "day-cell";
+      cell.style.background = future ? "transparent" : heatColor(count);
+      if (!future) {
+        const fd = new Date(ds + "T00:00:00");
+        const label = fd.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+        const tip = document.createElement("div");
+        tip.className = "tip";
+        tip.textContent = count > 0
+          ? `${count} submission${count>1?"s":""} · ${label}`
+          : `No submissions · ${label}`;
+        cell.appendChild(tip);
+      }
+      col.appendChild(cell);
+    });
+    grid.appendChild(col);
+  });
+  body.appendChild(grid);
+  graph.appendChild(body);
+
+  // Legend
+  const foot = document.createElement("div");
+  foot.className = "heatmap-footer";
+  foot.innerHTML = `Less
+    <span class="legend-cell" style="background:#21262d"></span>
+    <span class="legend-cell" style="background:#0e4429"></span>
+    <span class="legend-cell" style="background:#006d32"></span>
+    <span class="legend-cell" style="background:#26a641"></span>
+    <span class="legend-cell" style="background:#39d353"></span>
+    More`;
+  graph.appendChild(foot);
+
+  wrapInner.appendChild(graph);
+  wrap.appendChild(wrapInner);
+  return wrap;
+}
+
+// ── BUILD GFG MONTHLY BAR CHART ───────────────────────
+function buildMonthlyChart(monthly, yearlyTotal) {
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear  = new Date().getFullYear();
+
+  const values = Object.values(monthly);
+  const maxVal = Math.max(...values, 1);
+
+  const wrap = document.createElement("div");
+  wrap.className = "monthly-chart-wrap";
+
+  // Header
+  const hdr = document.createElement("div");
+  hdr.className = "monthly-chart-title";
+  hdr.innerHTML = `<strong>${yearlyTotal}</strong> submissions this year &nbsp;·&nbsp; Monthly breakdown`;
+  wrap.appendChild(hdr);
+
+  // Bars container
+  const bars = document.createElement("div");
+  bars.className = "monthly-bars";
+
+  for (let m = 1; m <= 12; m++) {
+    const key   = `${currentYear}-${String(m).padStart(2,"0")}`;
+    const count = monthly[key] || 0;
+    const isCurrent = m === currentMonth;
+    const isFuture  = m > currentMonth;
+
+    // Bar height: 4px min for empty, scale up to 90px for max
+    const barHeight = count > 0 ? Math.max(8, (count / maxVal) * 90) : 4;
+
+    let barColor;
+    if (isFuture)       barColor = "#21262d";
+    else if (isCurrent) barColor = "#2f8d46";
+    else if (count > 0) barColor = "#196430";
+    else                barColor = "#21262d";
+
+    const col = document.createElement("div");
+    col.className = "month-bar-col";
+
+    // Count label above bar
+    const countEl = document.createElement("div");
+    countEl.className = "month-bar-count";
+    countEl.textContent = count > 0 ? count : "";
+    col.appendChild(countEl);
+
+    // Bar itself — wrap in a flex-end container so bars grow upward
+    const barWrap = document.createElement("div");
+    barWrap.style.cssText = `
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      flex: 1;
+    `;
+    const bar = document.createElement("div");
+    bar.className = "month-bar";
+    bar.style.cssText = `
+      width: 100%;
+      height: ${barHeight}px;
+      background: ${barColor};
+      border-radius: 3px 3px 0 0;
+    `;
+    bar.title = `${MONTHS_SHORT[m-1]}: ${count} submission${count !== 1 ? "s" : ""}`;
+    barWrap.appendChild(bar);
+    col.appendChild(barWrap);
+
+    // Month label below bar
+    const lblEl = document.createElement("div");
+    lblEl.className = `month-bar-label${isCurrent ? " current" : ""}`;
+    lblEl.textContent = MONTHS_SHORT[m-1];
+    col.appendChild(lblEl);
+
+    bars.appendChild(col);
+  }
+
+  wrap.appendChild(bars);
+
+  // Legend
+  const legend = document.createElement("div");
+  legend.style.cssText = "margin-top:12px; display:flex; gap:16px; font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace;";
+  legend.innerHTML = `
+    <span><span style="display:inline-block;width:10px;height:10px;background:#2f8d46;border-radius:2px;margin-right:4px"></span>Current month</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:#196430;border-radius:2px;margin-right:4px"></span>Past months</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:#21262d;border-radius:2px;margin-right:4px"></span>No activity</span>`;
+  wrap.appendChild(legend);
+
+  return wrap;
+}
+
+// ── STAT BOX ──────────────────────────────────────────
+function statBox(label, value, colorClass, sub = "") {
+  return `
+    <div class="stat-box">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value ${colorClass}">${value}</div>
+      ${sub ? `<div class="stat-sub">${sub}</div>` : ""}
+    </div>`;
+}
+
+// ── RENDER: LEETCODE ──────────────────────────────────
+function renderLeetcode(data, card) {
+  card.insertAdjacentHTML("beforeend", `
+    <div class="stats-row">
+      ${statBox("Total Solved", data.total_solved,      "c-total")}
+      ${statBox("Easy",         data.easy,              "c-easy")}
+      ${statBox("Medium",       data.medium,            "c-medium")}
+      ${statBox("Hard",         data.hard,              "c-hard")}
+      ${statBox("🔥 Streak",    data.streak + "d",      "c-streak")}
+      ${statBox("Active Days",  data.total_active_days, "c-white")}
+    </div>`);
+
+  if (data.daily_submissions) {
+    const total = Object.values(data.daily_submissions).reduce((a,b)=>a+b,0);
+    card.appendChild(buildHeatmap(
+      data.daily_submissions, true, total, data.total_active_days, data.streak
+    ));
+  }
+}
+
+// ── RENDER: CODEFORCES ────────────────────────────────
+function renderCodeforces(data, card) {
+  card.insertAdjacentHTML("beforeend", `
+    <div class="stats-row">
+      ${statBox("Total Solved", data.total_solved,                              "c-total")}
+      ${statBox("Rating",       data.rating === "unrated" ? "—" : data.rating, "c-rating")}
+      ${statBox("Rank",         data.rank || "—",                              "c-white")}
+    </div>`);
+
+  if (data.daily_submissions && Object.keys(data.daily_submissions).length > 0) {
+    card.appendChild(buildHeatmap(data.daily_submissions, false));
+  }
+}
+
+// ── RENDER: HACKERRANK ────────────────────────────────
+function renderHackerrank(data, card) {
+  card.insertAdjacentHTML("beforeend", `
+    <div class="stats-row">
+      ${statBox("Total Score",   data.total_score,   "c-total")}
+      ${statBox("Active Tracks", data.active_tracks, "c-white")}
+    </div>`);
+
+  if (data.breakdown && data.breakdown.length > 0) {
+    const tracksDiv = document.createElement("div");
+    tracksDiv.innerHTML = `<div class="stat-label" style="margin-bottom:10px">Track Breakdown</div>`;
+    const grid = document.createElement("div");
+    grid.className = "tracks-grid";
+    data.breakdown.forEach(t => {
+      grid.innerHTML += `
+        <div class="track-pill">
+          <div class="tname">${t.name}</div>
+          <div class="tscore">${t.score.toFixed(0)} pts</div>
+        </div>`;
+    });
+    tracksDiv.appendChild(grid);
+    card.appendChild(tracksDiv);
+  }
+}
+
+// ── RENDER: GEEKSFORGEEKS ─────────────────────────────
+function renderGeeksforgeeks(data, card) {
+  card.insertAdjacentHTML("beforeend", `
+    <div class="stats-row">
+      ${statBox("Total Solved",   data.total_solved,         "c-total")}
+      ${statBox("Coding Score",   data.coding_score,         "c-gfg")}
+      ${statBox("Easy",           data.easy,                 "c-easy")}
+      ${statBox("Medium",         data.medium,               "c-medium")}
+      ${statBox("Hard",           data.hard,                 "c-hard")}
+      ${statBox("Basic",          data.basic,                "c-white")}
+      ${statBox("School",         data.school,               "c-white")}
+      ${statBox("🔥 POTD Streak", data.potd_streak + "d",   "c-streak")}
+      ${statBox("Longest Streak", data.longest_streak + "d","c-streak")}
+      ${statBox("POTDs Solved",   data.potds_solved,         "c-white")}
+      ${statBox("Institute Rank", data.institute_rank,       "c-rating")}
+    </div>`);
+
+  // Monthly bar chart if data available
+  if (data.monthly_submissions && Object.keys(data.monthly_submissions).length > 0) {
+    card.appendChild(buildMonthlyChart(data.monthly_submissions, data.yearly_submissions));
+  }
+
+  card.insertAdjacentHTML("beforeend", `
+    <div class="gfg-note">
+      ⏱ GFG loads via Selenium — takes ~5–8 seconds. That's normal!
+    </div>`);
+}
+
+// ── LOAD ONE PLATFORM ─────────────────────────────────
+async function loadPlatform(platform, username) {
+  const container = document.getElementById("platforms");
+  const p = PLATFORM[platform];
+
+  const card = document.createElement("div");
+  card.className = "platform-card";
+  card.innerHTML = `
+    <div class="platform-header">
+      <div class="platform-dot" style="background:${p.color}"></div>
+      <div class="platform-name">${p.icon} ${p.label}</div>
+      <div class="platform-user">@${username}</div>
+      <div class="platform-badge"
+           style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}44">
+        LIVE
+      </div>
+    </div>
+    <div class="loading-text">
+      <div class="spinner"></div>
+      Fetching data${platform === "geeksforgeeks" ? " (Selenium — ~8 sec)" : ""}...
+    </div>`;
+
+  container.appendChild(card);
+
+  try {
+    const res = await fetch(`${API}/stats/${platform}/${username}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    card.querySelector(".loading-text").remove();
+
+    if (platform === "leetcode")       renderLeetcode(data, card);
+    if (platform === "codeforces")     renderCodeforces(data, card);
+    if (platform === "hackerrank")     renderHackerrank(data, card);
+    if (platform === "geeksforgeeks")  renderGeeksforgeeks(data, card);
+
+  } catch (e) {
+    card.querySelector(".loading-text").outerHTML =
+      `<div class="error-text">⚠ Could not load — ${e.message}</div>`;
+  }
+}
+
+// ── LOAD ALL ──────────────────────────────────────────
+async function loadAll() {
+  const lc  = document.getElementById("lc").value.trim();
+  const cf  = document.getElementById("cf").value.trim();
+  const hr  = document.getElementById("hr").value.trim();
+  const gfg = document.getElementById("gfg").value.trim();
+
+  if (!lc && !cf && !hr && !gfg) {
+    document.getElementById("platforms").innerHTML =
+      `<div class="error-text" style="padding:20px">Please enter at least one username.</div>`;
+    return;
+  }
+
+  document.getElementById("platforms").innerHTML = "";
+
+  if (lc)  await loadPlatform("leetcode",      lc);
+  if (cf)  await loadPlatform("codeforces",    cf);
+  if (hr)  await loadPlatform("hackerrank",    hr);
+  if (gfg) await loadPlatform("geeksforgeeks", gfg);
+}
+
+// Enter key to load
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") loadAll();
+});
 </script>
+</body>
+</html>
