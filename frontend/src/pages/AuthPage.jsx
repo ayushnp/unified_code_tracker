@@ -5,16 +5,6 @@ function Spinner() {
   return <span className="spin" style={{ borderTopColor: "#000" }} />;
 }
 
-function Alert({ type, msg }) {
-  if (!msg) return null;
-  return (
-    <div className={`alert ${type}`}>
-      <span>{type === "err" ? "✗" : "✓"}</span>
-      <span>{msg}</span>
-    </div>
-  );
-}
-
 export default function AuthPage({ onSuccess }) {
   const [mode,     setMode]     = useState("login");
   const [email,    setEmail]    = useState("");
@@ -29,7 +19,7 @@ export default function AuthPage({ onSuccess }) {
     setError("");
     const errs = {};
     if (!email.includes("@")) errs.email = true;
-    if (password.length < 6) errs.password = true;
+    if (password.length < 6)  errs.password = true;
     if (Object.keys(errs).length) {
       setFieldErr(errs);
       setError("Valid email + password required (min 6 chars).");
@@ -39,8 +29,12 @@ export default function AuthPage({ onSuccess }) {
     try {
       const path = mode === "login" ? "/auth/login" : "/auth/signup";
       const data = await api.post(path, { email, password });
-      const token = data?.token ?? data?.access_token ?? String(data);
-      onSuccess(token, email);
+
+      const token     = data?.token ?? data?.access_token ?? String(data);
+      const shareId   = data?.share_id ?? null;
+      const usernames = data?.usernames ?? null;   // only login returns this
+
+      onSuccess(token, email, shareId, usernames);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -62,15 +56,11 @@ export default function AuthPage({ onSuccess }) {
         </p>
 
         <div className="auth-tabs">
-          <button className={`auth-tab ${mode === "login" ? "active" : ""}`} onClick={() => switchMode("login")}>
-            Login
-          </button>
-          <button className={`auth-tab ${mode === "signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>
-            Sign Up
-          </button>
+          <button className={`auth-tab ${mode === "login"  ? "active" : ""}`} onClick={() => switchMode("login")}>Login</button>
+          <button className={`auth-tab ${mode === "signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>Sign Up</button>
         </div>
 
-        <Alert type="err" msg={error} />
+        {error && <div className="alert err"><span>✗</span><span>{error}</span></div>}
 
         <div className="field">
           <label className="field-label">Email</label>

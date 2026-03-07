@@ -12,8 +12,14 @@ function Spinner() {
   return <span className="spin" style={{ borderTopColor: "#000" }} />;
 }
 
-export default function SetupPage({ token, onSuccess, onSkip }) {
-  const [values,  setValues]  = useState({ leetcode: "", codeforces: "", hackerrank: "", geeksforgeeks: "" });
+export default function SetupPage({ token, savedPlatforms = {}, onSuccess, onSkip }) {
+  // Pre-fill with whatever was saved in DB / localStorage
+  const [values, setValues] = useState({
+    leetcode:      savedPlatforms.leetcode      || "",
+    codeforces:    savedPlatforms.codeforces    || "",
+    hackerrank:    savedPlatforms.hackerrank    || "",
+    geeksforgeeks: savedPlatforms.geeksforgeeks || "",
+  });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
   const [ok,      setOk]      = useState(false);
@@ -41,12 +47,14 @@ export default function SetupPage({ token, onSuccess, onSkip }) {
   return (
     <div className="page-center">
       <div className="setup-box">
-        <div className="auth-eyebrow">Step 2 of 2</div>
+        <div className="auth-eyebrow">Platform Setup</div>
         <h1 className="auth-title">Connect <em>platforms.</em></h1>
-        <p className="auth-sub">Leave blank any platforms you don't use. You can change these anytime.</p>
+        <p className="auth-sub">
+          Enter your usernames below. Leave blank any platforms you don't use.
+        </p>
 
         {error && <div className="alert err"><span>✗</span><span>{error}</span></div>}
-        {ok    && <div className="alert ok"><span>✓</span><span>Saved! Loading your dashboard…</span></div>}
+        {ok    && <div className="alert ok"><span>✓</span><span>Saved! Loading dashboard…</span></div>}
 
         <div className="setup-grid">
           {PLATFORMS.map(p => (
