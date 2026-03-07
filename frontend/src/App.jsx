@@ -1,26 +1,24 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import AuthPage from "./pages/AuthPage";
-import PlatformsPage from "./pages/PlatformsPage";
+import SetupPage from "./pages/SetupPage";
 import DashboardPage from "./pages/DashboardPage";
 import "./index.css";
 
 export default function App() {
-  // step: "auth" | "platforms" | "dashboard"
-  const [step, setStep] = useState("auth");
+  const [step, setStep] = useState("auth"); // "auth" | "setup" | "dashboard"
   const { token, email, platforms, isLoggedIn, login, savePlatforms, logout } = useAuth();
 
-  // Restore session on mount
   useEffect(() => {
     if (isLoggedIn) setStep("dashboard");
   }, []);
 
-  const handleAuthSuccess = (tok, em) => {
+  const handleAuth = (tok, em) => {
     login(tok, em);
-    setStep("platforms");
+    setStep("setup");
   };
 
-  const handlePlatformSuccess = (p) => {
+  const handleSetup = (p) => {
     savePlatforms(p);
     setStep("dashboard");
   };
@@ -31,40 +29,39 @@ export default function App() {
   };
 
   return (
-    <div className="ct-root">
-      <header className="ct-header">
-        <div className="ct-logo">
-          Code<em>Tracker</em>
+    <div id="root">
+      <header className="app-header">
+        <div className="header-logo">
+          <div className="header-logo-pulse" />
+          CODE_TRACKER
         </div>
+        <div className="header-spacer" />
         {isLoggedIn && (
-          <button className="ct-logout" onClick={handleLogout}>
-            Logout
-          </button>
+          <>
+            <span className="header-email">{email}</span>
+            <button className="header-logout" onClick={handleLogout}>logout</button>
+          </>
         )}
       </header>
 
-      <main className="ct-main">
-        {step === "auth" && (
-          <AuthPage onSuccess={handleAuthSuccess} />
-        )}
-
-        {step === "platforms" && (
-          <PlatformsPage
-            token={token}
-            onSuccess={handlePlatformSuccess}
-            onSkip={() => setStep("dashboard")}
-          />
-        )}
-
-        {step === "dashboard" && (
-          <DashboardPage
-            token={token}
-            platforms={platforms}
-            email={email}
-            onEditPlatforms={() => setStep("platforms")}
-          />
-        )}
-      </main>
+      {step === "auth" && (
+        <AuthPage onSuccess={handleAuth} />
+      )}
+      {step === "setup" && (
+        <SetupPage
+          token={token}
+          onSuccess={handleSetup}
+          onSkip={() => setStep("dashboard")}
+        />
+      )}
+      {step === "dashboard" && (
+        <DashboardPage
+          token={token}
+          platforms={platforms}
+          email={email}
+          onEditPlatforms={() => setStep("setup")}
+        />
+      )}
     </div>
   );
 }

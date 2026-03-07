@@ -1,11 +1,11 @@
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function heatColor(count) {
-  if (count === 0) return "#21262d";
-  if (count <= 2)  return "#0e4429";
-  if (count <= 5)  return "#006d32";
-  if (count <= 9)  return "#26a641";
-  return "#39d353";
+  if (count === 0) return "#161c24";
+  if (count <= 2)  return "#0a3d20";
+  if (count <= 5)  return "#0d6632";
+  if (count <= 9)  return "#1a9e4a";
+  return "#00ff88";
 }
 
 function normalizeDaily(raw, isTimestamp) {
@@ -21,17 +21,17 @@ function normalizeDaily(raw, isTimestamp) {
   return out;
 }
 
-export default function Heatmap({ rawData, isTimestamp = false, totalSubs, activeDays, streakVal }) {
+export default function Heatmap({ rawData, isTimestamp = false, activeDays, streakVal }) {
   const data = normalizeDaily(rawData || {}, isTimestamp);
 
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const end   = new Date(today);
   end.setDate(today.getDate() + (6 - today.getDay()));
   const start = new Date(end);
   start.setDate(end.getDate() - 52 * 7);
   start.setDate(start.getDate() - start.getDay());
 
-  // Build weeks array
+  // Build weeks
   const weeks = [];
   const cur = new Date(start);
   while (cur <= end) {
@@ -44,7 +44,7 @@ export default function Heatmap({ rawData, isTimestamp = false, totalSubs, activ
     weeks.push(week);
   }
 
-  // Month label positions
+  // Month labels
   const monthPos = [];
   let lastM = -1;
   weeks.forEach((w, wi) => {
@@ -55,43 +55,39 @@ export default function Heatmap({ rawData, isTimestamp = false, totalSubs, activ
     else if (lastM === -1) lastM = m;
   });
 
-  const total  = totalSubs  ?? Object.values(data).reduce((a,b) => a+b, 0);
+  const total  = Object.values(data).reduce((a, b) => a + b, 0);
   const active = activeDays ?? Object.values(data).filter(v => v > 0).length;
 
   return (
-    <div className="heatmap-section">
-      <div className="heatmap-info">
+    <div className="heatmap-wrap">
+      <div className="heatmap-meta">
         <strong>{total.toLocaleString()}</strong> submissions in the past year &nbsp;·&nbsp;
         Active days: <strong>{active}</strong>
-        {streakVal ? <>&nbsp;·&nbsp; Max streak: <strong>{streakVal}</strong></> : null}
+        {streakVal ? <>&nbsp;·&nbsp; 🔥 Streak: <strong>{streakVal} days</strong></> : null}
       </div>
 
       <div className="heatmap-scroll">
-        <div className="heatmap-graph">
-          {/* Month labels */}
-          <div className="month-labels-row" style={{ position: "relative", height: 17, marginLeft: 28, marginBottom: 4 }}>
+        <div className="heatmap-inner">
+          {/* month labels */}
+          <div className="hm-month-row">
             {monthPos.map(({ label, wi }) => (
-              <span
-                key={label + wi}
-                className="month-lbl"
-                style={{ position: "absolute", left: wi * 16 }}
-              >
+              <span key={label + wi} className="hm-month-lbl" style={{ left: wi * 15 }}>
                 {label}
               </span>
             ))}
           </div>
 
-          {/* Grid */}
-          <div className="heatmap-body">
-            <div className="day-labels">
+          {/* grid */}
+          <div className="hm-body">
+            <div className="hm-day-labels">
               {["", "Mon", "", "Wed", "", "Fri", ""].map((t, i) => (
-                <div key={i} className="day-lbl">{t}</div>
+                <div key={i} className="hm-day-lbl">{t}</div>
               ))}
             </div>
 
-            <div className="weeks-grid">
+            <div className="hm-grid">
               {weeks.map((week, wi) => (
-                <div key={wi} className="week-col">
+                <div key={wi} className="hm-week">
                   {week.map(({ ds, count, future }) => {
                     const label = new Date(ds + "T00:00:00").toLocaleDateString("en-US", {
                       month: "short", day: "numeric", year: "numeric"
@@ -99,11 +95,11 @@ export default function Heatmap({ rawData, isTimestamp = false, totalSubs, activ
                     return (
                       <div
                         key={ds}
-                        className="day-cell"
+                        className="hm-cell"
                         style={{ background: future ? "transparent" : heatColor(count) }}
                       >
                         {!future && (
-                          <div className="day-tip">
+                          <div className="hm-tip">
                             {count > 0
                               ? `${count} submission${count > 1 ? "s" : ""} · ${label}`
                               : `No submissions · ${label}`}
@@ -117,11 +113,11 @@ export default function Heatmap({ rawData, isTimestamp = false, totalSubs, activ
             </div>
           </div>
 
-          {/* Legend */}
-          <div className="heatmap-legend">
+          {/* legend */}
+          <div className="hm-legend">
             Less
-            {["#21262d","#0e4429","#006d32","#26a641","#39d353"].map(c => (
-              <span key={c} className="legend-cell" style={{ background: c }} />
+            {["#161c24","#0a3d20","#0d6632","#1a9e4a","#00ff88"].map(c => (
+              <span key={c} className="hm-leg-cell" style={{ background: c }} />
             ))}
             More
           </div>
