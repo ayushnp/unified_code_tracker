@@ -93,9 +93,9 @@ def get_dashboard(user=Depends(get_current_user)):
         return {"message": "No platforms linked yet", "stats": {}}
 
     fetcher_map = {
-        "leetcode":      leetcode,
-        "codeforces":    codeforces,
-        "hackerrank":    hackerrank,
+        "leetcode": leetcode,
+        "codeforces": codeforces,
+        "hackerrank": hackerrank,
         "geeksforgeeks": geeksforgeeks,
     }
 
