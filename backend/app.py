@@ -191,3 +191,11 @@ def hr(username: str):  return hackerrank.get_stats(username)
 
 @app.get("/stats/geeksforgeeks/{username}", tags=["Direct Stats"])
 def gfg(username: str): return geeksforgeeks.get_stats(username)
+
+
+import os
+import uvicorn
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
