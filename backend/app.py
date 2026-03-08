@@ -148,7 +148,7 @@ def refresh_dashboard(user=Depends(get_current_user)):
             except Exception as e:
                 stats[platform] = {"error": str(e), "platform": platform}
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.utcnow()
 
     users_collection.update_one(
         {"email": user["email"]},
