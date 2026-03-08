@@ -9,7 +9,7 @@ import {
 
 const PLATFORM_ORDER = ["leetcode", "codeforces", "hackerrank", "geeksforgeeks"];
 
-const BASE_URL = "http://localhost:5173"; // change to your deployed URL in production
+const BASE_URL = "https://unified-code-tracker.onrender.com"; // change to your deployed URL in production
 
 export default function DashboardPage({ token, platforms, email, shareId, onEditPlatforms }) {
   const [stats,        setStats]        = useState({});
