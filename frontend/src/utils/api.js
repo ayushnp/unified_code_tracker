@@ -1,4 +1,4 @@
-const BASE = "https://unified-code-tracker.onrender.com/";
+const BASE = "https://unified-code-tracker.onrender.com";
 
 const api = {
   post: async (path, body, token = null) => {
