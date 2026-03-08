@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-jose[cryptography]
+bcrypt
+python-dotenv
+pymongo
+httpx
+selenium
+webdriver-manager
+pydantic
