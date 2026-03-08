@@ -16,6 +16,7 @@ export default function SharedPage({ shareId }) {
 
   useEffect(() => {
     api.get(`/share/${shareId}`)
+    //api.get(`/share/${shareId}`)
       .then(d => { setData(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
   }, [shareId]);
