@@ -798,8 +798,6 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
   font-size: .62rem; color: var(--dim); text-align: center;
 }
 
-/* ═══════════════ COMMENTS ═══════════════ */
-
 .comments-section {
   margin-top: 2rem;
   background: var(--bg1);
@@ -985,3 +983,87 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
   cursor: pointer; transition: all .2s;
 }
 .comment-cancel-btn:hover { border-color: var(--hard); color: var(--hard); }
+
+/* ═══════════════ OWNER COMMENTS PANEL (dashboard) ═══════════════ */
+
+.owner-comments-panel {
+  background: var(--bg1);
+  border: 1px solid rgba(251,146,60,.2);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  animation: riseUp .3s ease both;
+}
+.owner-comments-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+.owner-comments-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .88rem; font-weight: 700;
+  color: var(--text);
+  display: flex; align-items: center; gap: .6rem;
+}
+.owner-comments-empty {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem; color: var(--muted);
+  padding: .5rem 0;
+}
+.owner-comments-list {
+  display: flex; flex-direction: column; gap: .7rem;
+}
+.owner-comment-item {
+  display: flex; align-items: flex-start; gap: .75rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  transition: border-color .2s;
+}
+.owner-comment-item:hover { border-color: var(--border2); }
+.owner-comment-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem; font-weight: 700;
+  color: var(--glow); flex-shrink: 0;
+}
+.owner-comment-body { flex: 1; min-width: 0; }
+.owner-comment-meta {
+  display: flex; align-items: center;
+  gap: .6rem; margin-bottom: .3rem; flex-wrap: wrap;
+}
+.owner-comment-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem; font-weight: 600; color: var(--text);
+}
+.owner-comment-time {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem; color: var(--muted);
+}
+.owner-comment-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .8rem; color: var(--text);
+  line-height: 1.6; white-space: pre-wrap;
+}
+.owner-delete-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  border-radius: 5px;
+  padding: .25rem .5rem;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.owner-delete-btn:hover:not(:disabled) {
+  border-color: var(--hard);
+  color: var(--hard);
+  background: rgba(239,68,68,.06);
+}
+.owner-delete-btn:disabled { opacity: .4; cursor: not-allowed; }

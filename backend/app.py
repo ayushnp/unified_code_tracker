@@ -347,6 +347,25 @@ def delete_comment(comment_id: str, req: CommentDeleteRequest):
     comments_collection.delete_one({"_id": oid})
     return {"message": "Comment deleted"}
 
+@app.delete("/comments/{comment_id}/owner", tags=["Comments"])
+def owner_delete_comment(comment_id: str, user=Depends(get_current_user)):
+    """Profile owner can delete ANY comment on their profile."""
+    try:
+        oid = ObjectId(comment_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+
+    comment = comments_collection.find_one({"_id": oid})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    # Verify this comment belongs to the logged-in user's share page
+    if comment["share_id"] != user["share_id"]:
+        raise HTTPException(status_code=403, detail="Not your profile")
+
+    comments_collection.delete_one({"_id": oid})
+    return {"message": "Comment deleted"}
+    return {"message": "Comment deleted"}
 
 # ── DIRECT STATS (testing, no auth) ──────────────────
 @app.get("/stats/leetcode/{username}",      tags=["Direct Stats"])
