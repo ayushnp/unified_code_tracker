@@ -9,7 +9,7 @@
 
   const PLATFORM_ORDER = ["leetcode", "codeforces", "hackerrank", "geeksforgeeks"];
 
- const BASE_URL = "https://unifiedcodetracker.vercel.app"; // change to your deployed URL in production
+ const BASE_URL = "https://uctss.vercel.app/"; // change to your deployed URL in production
 
   export default function DashboardPage({ token, platforms, email, shareId, onEditPlatforms }) {
     const [stats,        setStats]        = useState({});
