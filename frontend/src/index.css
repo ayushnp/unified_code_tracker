@@ -598,3 +598,230 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
   .auth-box,.setup-box{padding:1.75rem 1.25rem}
   .dash-title{font-size:1.25rem}
 }
+
+/* ═══════════════ COMPARE PAGE ═══════════════ */
+
+/* Setup card */
+.cmp-setup-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.5rem;
+  animation: riseUp .35s ease both;
+}
+.cmp-setup-header {
+  margin-bottom: 1.25rem;
+}
+.cmp-setup-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: .3rem;
+}
+.cmp-setup-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .65rem;
+  color: var(--muted);
+}
+.cmp-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem 1.25rem;
+}
+@media (max-width: 600px) {
+  .cmp-setup-grid { grid-template-columns: 1fr; }
+}
+
+/* Scoreboard */
+.cmp-scoreboard {
+  display: flex;
+  align-items: center;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+  animation: riseUp .3s ease both;
+}
+.cmp-score-side {
+  flex: 1;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: all .3s;
+}
+.cmp-score-side.cmp-score-win {
+  border-color: var(--glow);
+  background: rgba(0, 255, 136, .04);
+  box-shadow: 0 0 20px rgba(0, 255, 136, .06);
+}
+.cmp-score-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  color: var(--muted);
+  margin-bottom: .5rem;
+  letter-spacing: .06em;
+}
+.cmp-score-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+.cmp-score-win .cmp-score-num {
+  color: var(--glow);
+  text-shadow: 0 0 20px rgba(0, 255, 136, .4);
+}
+.cmp-score-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.cmp-score-center {
+  text-align: center;
+  flex-shrink: 0;
+}
+.cmp-score-vs {
+  font-size: 1.75rem;
+  margin-bottom: .25rem;
+}
+.cmp-score-total {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .6rem;
+  color: var(--muted);
+}
+
+/* Compare card */
+.cmp-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  animation: riseUp .35s ease both;
+}
+.cmp-card-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.cmp-wins-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem;
+  font-weight: 600;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: .3rem .85rem;
+}
+
+/* usernames row */
+.cmp-usernames {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.cmp-username-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  padding: .28rem .75rem;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  color: var(--glow);
+}
+.cmp-mine {
+  border-color: rgba(0, 255, 136, .3);
+  color: var(--glow);
+}
+.cmp-vs {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .12em;
+}
+
+/* Metric rows */
+.cmp-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.cmp-metric-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.cmp-metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+/* Compare bar */
+.cmp-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.cmp-bar-track {
+  flex: 1;
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg3);
+  gap: 1px;
+}
+.cmp-bar-left {
+  height: 100%;
+  border-radius: 4px 0 0 4px;
+  transition: width .5s cubic-bezier(.22,1,.36,1), background .3s;
+}
+.cmp-bar-right {
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  transition: width .5s cubic-bezier(.22,1,.36,1), background .3s;
+}
+.cmp-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem;
+  color: var(--muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+.cmp-val-left  { text-align: right; }
+.cmp-val-right { text-align: left; }
+.cmp-winner {
+  color: var(--text);
+  font-weight: 700;
+}
+.cmp-bar-empty {
+  flex: 1;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .62rem;
+  color: var(--dim);
+}

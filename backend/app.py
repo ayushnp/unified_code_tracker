@@ -41,6 +41,14 @@ class PlatformUsernames(BaseModel):
     hackerrank:    Optional[str] = ""
     geeksforgeeks: Optional[str] = ""
 
+
+class CompareRequest(BaseModel):
+    leetcode:      Optional[str] = ""
+    codeforces:    Optional[str] = ""
+    hackerrank:    Optional[str] = ""
+    geeksforgeeks: Optional[str] = ""
+
+
 # ── AUTH HELPER ───────────────────────────────────────
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -176,6 +184,55 @@ def get_shared_dashboard(share_id: str):
         "usernames":    user.get("usernames", {}),
         "stats":        user.get("cached_stats", {}),
         "last_updated": user.get("last_updated"),
+    }
+
+@app.post("/compare", tags=["Compare"])
+def compare_stats(req: CompareRequest, user=Depends(get_current_user)):
+    """
+    Fetch live stats for a friend's usernames and return
+    both the current user's cached stats + friend's live stats.
+    """
+    friend_usernames = {
+        "leetcode":      (req.leetcode      or "").strip(),
+        "codeforces":    (req.codeforces    or "").strip(),
+        "hackerrank":    (req.hackerrank    or "").strip(),
+        "geeksforgeeks": (req.geeksforgeeks or "").strip(),
+    }
+
+    if not any(friend_usernames.values()):
+        raise HTTPException(status_code=400, detail="Enter at least one friend username")
+
+    fetcher_map = {
+        "leetcode":      leetcode,
+        "codeforces":    codeforces,
+        "hackerrank":    hackerrank,
+        "geeksforgeeks": geeksforgeeks,
+    }
+
+    # Fetch friend's stats live
+    friend_stats = {}
+    for platform, fetcher in fetcher_map.items():
+        username = friend_usernames.get(platform, "")
+        if username:
+            try:
+                friend_stats[platform] = fetcher.get_stats(username)
+            except Exception as e:
+                friend_stats[platform] = {"error": str(e), "platform": platform}
+
+    # Return user's cached stats + friend's live stats
+    my_cached = user.get("cached_stats", {})
+    my_usernames = user.get("usernames", {})
+
+    return {
+        "me": {
+            "email":     user["email"],
+            "usernames": my_usernames,
+            "stats":     my_cached,
+        },
+        "friend": {
+            "usernames": friend_usernames,
+            "stats":     friend_stats,
+        }
     }
 
 
