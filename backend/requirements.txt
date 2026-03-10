@@ -5,6 +5,4 @@ bcrypt
 python-dotenv
 pymongo
 httpx
-selenium
-webdriver-manager
 pydantic

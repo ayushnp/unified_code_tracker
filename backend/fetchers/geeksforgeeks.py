@@ -1,105 +1,81 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-import re, time
-
-MONTHS = ["January","February","March","April","May","June",
-          "July","August","September","October","November","December"]
+import httpx
+import re
+import json
 
 def get_stats(username: str):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--log-level=3")
-
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options
-    )
-
     try:
-        driver.get(f"https://www.geeksforgeeks.org/profile/{username}?tab=activity")
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        r = httpx.get(
+            f"https://www.geeksforgeeks.org/profile/{username}?tab=activity",
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+            },
+            timeout=20.0,
+            follow_redirects=True,
         )
-        time.sleep(4)
 
+        if r.status_code != 200:
+            return {"error": f"Profile not found (status {r.status_code})", "platform": "geeksforgeeks"}
 
-        text = driver.find_element(By.TAG_NAME, "body").text
+        # GFG uses Next.js — stats are embedded in self.__next_f.push() chunks
+        chunks = re.findall(r'self\.__next_f\.push\(\[(.*?)\]\)', r.text, re.DOTALL)
 
-        def extract_int(pattern, default=0):
-            m = re.search(pattern, text)
-            return int(m.group(1).strip()) if m else default
+        user_data = None
+        for chunk in chunks:
+            if 'total_problems_solved' not in chunk:
+                continue
 
-        def extract(pattern, default="—"):
-            m = re.search(pattern, text)
-            return m.group(1).strip() if m else default
+            string_match = re.search(r'^\d+,"(.*)"$', chunk, re.DOTALL)
+            if string_match:
+                raw = string_match.group(1)
+                unescaped = raw.replace('\\"', '"').replace('\\\\', '\\').replace('\\n', '\n')
+            else:
+                unescaped = chunk
 
-        coding_score    = extract_int(r"Coding Score\s*(\d+)")
-        problems_solved = extract_int(r"Problems Solved\s*(\d+)")
-        institute_rank  = extract(r"Institute Rank\s*([^\n]+)")
-        institute_rank  = "—" if institute_rank in ["__", "_", ""] else institute_rank
-        longest_streak  = extract_int(r"Longest Streak:\s*(\d+)")
-        potd_streak     = extract_int(r"(\d+)\s*Day POTD Streak")
-        potds_solved    = extract_int(r"POTDs Solved:\s*(\d+)")
-        school          = extract_int(r"SCHOOL\s*\((\d+)\)")
-        basic           = extract_int(r"BASIC\s*\((\d+)\)")
-        easy            = extract_int(r"EASY\s*\((\d+)\)")
-        medium          = extract_int(r"MEDIUM\s*\((\d+)\)")
-        hard            = extract_int(r"HARD\s*\((\d+)\)")
-        yearly          = extract_int(r"(\d+)\s*Submissions in Year")
+            blob_match = re.search(
+                r'\{[^{}]*"total_problems_solved"\s*:\s*\d+[^{}]*\}',
+                unescaped
+            )
+            if blob_match:
+                try:
+                    user_data = json.loads(blob_match.group(0))
+                    break
+                except json.JSONDecodeError:
+                    pass
 
-        # ── Scrape monthly submission counts ──
-        # Page shows each month name followed by a count
-        # e.g. "January\n12\nFebruary\n0\n..."
-        monthly = {}
-        current_year = None
+        if not user_data:
+            return {"error": "Could not parse profile data — GFG may have changed their page structure", "platform": "geeksforgeeks"}
 
-        # Find the year first
-        year_match = re.search(r"Submissions in Year\s*\n?(\d{4})", text)
-        if year_match:
-            current_year = int(year_match.group(1))
-        else:
-            from datetime import datetime
-            current_year = datetime.now().year
+        def safe_int(val, default=0):
+            try:
+                return int(val) if val is not None else default
+            except (ValueError, TypeError):
+                return default
 
-        # Extract month counts — GFG lists months then count below each
-        lines = text.split("\n")
-        for i, line in enumerate(lines):
-            line = line.strip()
-            if line in MONTHS:
-                # Next non-empty line should be the count
-                for j in range(i+1, min(i+4, len(lines))):
-                    next_line = lines[j].strip()
-                    if next_line.isdigit():
-                        month_num = MONTHS.index(line) + 1
-                        key = f"{current_year}-{month_num:02d}"
-                        monthly[key] = int(next_line)
-                        break
+        institute_rank = user_data.get("institute_rank") or "—"
+        if institute_rank in ["", "__", "_", None]:
+            institute_rank = "—"
 
         return {
-            "platform":        "geeksforgeeks",
-            "username":        username,
-            "coding_score":    coding_score,
-            "total_solved":    problems_solved,
-            "institute_rank":  institute_rank,
-            "longest_streak":  longest_streak,
-            "potd_streak":     potd_streak,
-            "potds_solved":    potds_solved,
-            "yearly_submissions": yearly,
-            "school":          school,
-            "basic":           basic,
-            "easy":            easy,
-            "medium":          medium,
-            "hard":            hard,
-            "monthly_submissions": monthly,  # { "2025-01": 12, "2025-11": 47, ... }
+            "platform":           "geeksforgeeks",
+            "username":           username,
+            "coding_score":       safe_int(user_data.get("score")),
+            "total_solved":       safe_int(user_data.get("total_problems_solved")),
+            "institute_rank":     institute_rank,
+            "longest_streak":     safe_int(user_data.get("pod_solved_longest_streak")),
+            "potd_streak":        safe_int(user_data.get("pod_solved_current_streak")),
+            "potds_solved":       safe_int(user_data.get("pod_correct_submissions_count")),
+            "monthly_score":      safe_int(user_data.get("monthly_score")),
+            "yearly_submissions": 0,
+            "school":             0,
+            "basic":              0,
+            "easy":               0,
+            "medium":             0,
+            "hard":               0,
         }
 
+    except httpx.TimeoutException:
+        return {"error": "GFG request timed out, try again", "platform": "geeksforgeeks"}
     except Exception as e:
         return {"error": str(e), "platform": "geeksforgeeks"}
-    finally:
-        driver.quit()
