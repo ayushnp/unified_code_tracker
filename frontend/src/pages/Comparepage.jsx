@@ -112,8 +112,8 @@ function PlatformCompareCard({ platform, myData, friendData, myUsername, friendU
 
   let myWins = 0, friendWins = 0, ties = 0;
   metrics.forEach(({ key, higher }) => {
-    const a = parseFloat(myData?.[key])    || 0;
-    const b = parseFloat(friendData?.[key]) || 0;
+    const a = myErr     ? 0 : (parseFloat(myData?.[key])     || 0);
+    const b = friendErr ? 0 : (parseFloat(friendData?.[key]) || 0);
     if (a === b) { ties++; return; }
     if (higher ? a > b : a < b) myWins++;
     else friendWins++;
@@ -210,10 +210,12 @@ export default function ComparePage({ token, myPlatforms, myEmail, onBack }) {
       const metrics = METRICS[key] || [];
       const myData  = result.me.stats[key];
       const frData  = result.friend.stats[key];
-      if (!myData || !frData || myData.error || frData.error) return;
+      // Skip only if BOTH are missing — if one side has data, treat other as 0
+      if (!myData && !frData) return;
+      if (frData?.error && myData?.error) return;
       metrics.forEach(({ key: mk, higher }) => {
-        const a = parseFloat(myData[mk]) || 0;
-        const b = parseFloat(frData[mk]) || 0;
+        const a = myData?.error  ? 0 : (parseFloat(myData?.[mk])  || 0);
+        const b = frData?.error  ? 0 : (parseFloat(frData?.[mk])  || 0);
         if (a === b) { tiedTotal++; return; }
         if (higher ? a > b : a < b) myTotal++;
         else friendTotal++;
