@@ -5,9 +5,10 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 import uuid
-
+from bson import ObjectId
+import secrets
 from fetchers import leetcode, codeforces, hackerrank, geeksforgeeks
-from database import users_collection
+from database import users_collection, comments_collection
 from auth import hash_password, verify_password, create_token, decode_token
 
 # ── APP SETUP ─────────────────────────────────────────
@@ -47,6 +48,17 @@ class CompareRequest(BaseModel):
     codeforces:    Optional[str] = ""
     hackerrank:    Optional[str] = ""
     geeksforgeeks: Optional[str] = ""
+
+class CommentRequest(BaseModel):
+    name:    str
+    message: str
+
+class CommentEditRequest(BaseModel):
+    message:      str
+    edit_token:   str
+
+class CommentDeleteRequest(BaseModel):
+    edit_token: str
 
 
 # ── AUTH HELPER ───────────────────────────────────────
@@ -234,6 +246,106 @@ def compare_stats(req: CompareRequest, user=Depends(get_current_user)):
             "stats":     friend_stats,
         }
     }
+@app.post("/share/{share_id}/comments", tags=["Comments"])
+def add_comment(share_id: str, req: CommentRequest):
+    user = users_collection.find_one({"share_id": share_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Share link not found")
+
+    if not req.name.strip() or not req.message.strip():
+        raise HTTPException(status_code=400, detail="Name and message are required")
+
+    if len(req.message) > 500:
+        raise HTTPException(status_code=400, detail="Message too long (max 500 chars)")
+
+    edit_token = secrets.token_urlsafe(24)  # secret given to commenter to edit/delete later
+
+    comment = {
+        "share_id":   share_id,
+        "name":       req.name.strip()[:50],
+        "message":    req.message.strip(),
+        "edit_token": edit_token,
+        "created_at": datetime.utcnow(),
+        "edited":     False,
+    }
+
+    result = comments_collection.insert_one(comment)
+    return {
+        "id":         str(result.inserted_id),
+        "name":       comment["name"],
+        "message":    comment["message"],
+        "edit_token": edit_token,   # ← give this to the commenter, store in their localStorage
+        "created_at": comment["created_at"],
+        "edited":     False,
+    }
+
+
+@app.get("/share/{share_id}/comments", tags=["Comments"])
+def get_comments(share_id: str):
+    user = users_collection.find_one({"share_id": share_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Share link not found")
+
+    raw = list(comments_collection.find(
+        {"share_id": share_id},
+        {"edit_token": 0}           # never expose edit tokens in list
+    ).sort("created_at", 1))
+
+    comments = []
+    for c in raw:
+        comments.append({
+            "id":         str(c["_id"]),
+            "name":       c["name"],
+            "message":    c["message"],
+            "created_at": c.get("created_at"),
+            "edited":     c.get("edited", False),
+        })
+    return {"comments": comments, "total": len(comments)}
+
+
+@app.put("/comments/{comment_id}", tags=["Comments"])
+def edit_comment(comment_id: str, req: CommentEditRequest):
+    try:
+        oid = ObjectId(comment_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+
+    comment = comments_collection.find_one({"_id": oid})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment["edit_token"] != req.edit_token:
+        raise HTTPException(status_code=403, detail="Invalid edit token")
+
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+    if len(req.message) > 500:
+        raise HTTPException(status_code=400, detail="Message too long (max 500 chars)")
+
+    comments_collection.update_one(
+        {"_id": oid},
+        {"$set": {"message": req.message.strip(), "edited": True}}
+    )
+    return {"message": "Comment updated"}
+
+
+@app.delete("/comments/{comment_id}", tags=["Comments"])
+def delete_comment(comment_id: str, req: CommentDeleteRequest):
+    try:
+        oid = ObjectId(comment_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+
+    comment = comments_collection.find_one({"_id": oid})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment["edit_token"] != req.edit_token:
+        raise HTTPException(status_code=403, detail="Invalid edit token")
+
+    comments_collection.delete_one({"_id": oid})
+    return {"message": "Comment deleted"}
 
 
 # ── DIRECT STATS (testing, no auth) ──────────────────

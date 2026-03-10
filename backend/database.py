@@ -7,7 +7,9 @@ load_dotenv()
 client = MongoClient(os.getenv("MONGO_URL"))
 db = client["codetracker"]
 
-users_collection = db["users"]
+users_collection    = db["users"]
+comments_collection = db["comments"]
 
-# Create unique index on email so no duplicates
+# Indexes
 users_collection.create_index("email", unique=True)
+comments_collection.create_index("share_id")   # fast lookup by share_id

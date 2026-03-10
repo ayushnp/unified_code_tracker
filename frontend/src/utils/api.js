@@ -26,6 +26,40 @@ const api = {
     if (!res.ok) throw new Error(`Error ${res.status}`);
     return data;
   },
+
+  put: async (path, body, token = null) => {
+    const res = await fetch(BASE + path, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const msg = data?.detail || data?.message || `Error ${res.status}`;
+      throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    }
+    return data;
+  },
+
+  delete: async (path, body = null, token = null) => {
+    const res = await fetch(BASE + path, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const msg = data?.detail || data?.message || `Error ${res.status}`;
+      throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    }
+    return data;
+  },
 };
 
 export default api;
