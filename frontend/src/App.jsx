@@ -4,7 +4,7 @@ import AuthPage      from "./pages/AuthPage";
 import SetupPage     from "./pages/SetupPage";
 import DashboardPage from "./pages/DashboardPage";
 import SharedPage    from "./pages/SharedPage";
-import ComparePage   from "./pages/ComparePage";
+import Comparepage   from "./pages/Comparepage.jsx";
 import "./index.css";
 
 function getShareId() {
@@ -72,7 +72,7 @@ export default function App() {
       )}
 
       {step === "compare" && (
-        <ComparePage
+        <Comparepage
           token={token}
           myPlatforms={platforms}
           myEmail={email}

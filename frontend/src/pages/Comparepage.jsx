@@ -142,7 +142,7 @@ function PlatformCompareCard({ platform, myData, friendData, myUsername, friendU
   );
 }
 
-export default function ComparePage({ token, myPlatforms, myEmail, onBack }) {
+export default function Comparepage({ token, myPlatforms, myEmail, onBack }) {
   const [friend,   setFriend]   = useState({ leetcode: "", codeforces: "", hackerrank: "", geeksforgeeks: "" });
   const [result,   setResult]   = useState(null);
   const [loading,  setLoading]  = useState(false);
